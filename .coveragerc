@@ -1,0 +1,7 @@
+[run]
+branch = True
+parallel = True
+source = ptero_common
+
+[report]
+show_missing = True

@@ -1,0 +1,4 @@
+coverage
+honcho
+nose >= 1.3.0
+psutil

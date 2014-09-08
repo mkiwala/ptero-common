@@ -1,4 +1,6 @@
 # PTero common scripts and functions
+[![Build Status](https://travis-ci.org/mark-burnett/ptero-common.svg?branch=master)](https://travis-ci.org/mark-burnett/ptero-common)
+[![Coverage Status](https://img.shields.io/coveralls/mark-burnett/ptero-common.svg)](https://coveralls.io/r/mark-burnett/ptero-common)
 
 ## Description
 

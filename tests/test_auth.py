@@ -9,7 +9,8 @@ app = flask.Flask('test_app')
 def target(*args, **kwargs):
     return 'test_return_value'
 
-VALID_HEADER = {'Authorization':'foo', 'Identity':'bar'}
+VALID_HEADER = {'Authorization':'Bearer 1234', 'Identity':'bar'}
+BAD_AUTHORIZATION_HEADER = {'Authorization':'foo', 'Identity':'bar'}
 
 class TestRequestParser(TestCase):
     def test_no_authorization_returns_401(self):
@@ -33,6 +34,7 @@ class TestRequestParser(TestCase):
             self.assertEqual(return_value.headers['Identify'],
                     'ID Token claims="c, d", aud="e, f"')
 
+
     def test_returns_targets_result(self):
         with app.test_request_context(headers=VALID_HEADER):
             return_value = target()
@@ -46,3 +48,17 @@ class TestRequestParser(TestCase):
         with app.test_request_context(headers=VALID_HEADER):
             return_value = echo_target(1,2,3, kw='foo')
             self.assertEqual(return_value, ((1,2,3), {'kw':'foo','id_token':None}))
+
+
+    def test_invalid_authorization_header_returns_400(self):
+        with app.test_request_context(headers=BAD_AUTHORIZATION_HEADER):
+            return_value = target()
+            self.assertEqual(return_value.status, '400 BAD REQUEST')
+
+    def test_invalid_authorization_header_returns_authenticate_headers(self):
+        with app.test_request_context(headers=BAD_AUTHORIZATION_HEADER):
+            return_value = target()
+            self.assertTrue('WWW-Authenticate' in return_value.headers)
+
+            self.assertEqual(return_value.headers['WWW-Authenticate'],
+                    'Bearer realm="PTero", scope="a b", error="invalid_request", error_description="The Bearer token is malformed"')

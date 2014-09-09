@@ -1,4 +1,5 @@
 from flask import request, Response
+import jot
 import re
 
 class ProtectedEndpoint(object):
@@ -35,6 +36,14 @@ def _parse_request(request, scopes, claims, audiences):
                         '%s, error="invalid_request", error_description="The Bearer token is malformed"' %
                         (authenticate_value_text(scopes)),
                         'Identify': identify_value_text(claims, audiences)}), None
+    try:
+        id_token = jot.deserialize(request.headers['Identity'])
+    except:
+        return Response(status=400,
+                headers={'WWW-Authenticate': authenticate_value_text(scopes),
+                        'Identify': '%s, error="invalid_request", error_description="The ID token is malformed"'
+                        % identify_value_text(claims, audiences)}), None
+
 
     return None, None
 

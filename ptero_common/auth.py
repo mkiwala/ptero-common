@@ -11,14 +11,16 @@ class ProtectedEndpoint(object):
         self.audiences = audiences
 
     def __call__(self, target):
-        def handle_request(*args, **kwargs):
-            response, id_token = _parse_request(request, self.scopes,
-                    self.claims, self.audiences)
-            if (response):
-                return response
-            else:
-                return target(*args, id_token=id_token, **kwargs)
-        return handle_request
+        self.target = target
+        return self._execute_target
+
+    def _execute_target(self, *args, **kwargs):
+        response, id_token = _parse_request(request, self.scopes,
+                self.claims, self.audiences)
+        if (response):
+            return response
+        else:
+            return self.target(*args, id_token=id_token, **kwargs)
 
 protected_endpoint = ProtectedEndpoint
 

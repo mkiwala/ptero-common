@@ -7,11 +7,13 @@ class MissingAuthHeadersError(Exception): pass
 class MalformedAccessTokenError(Exception): pass
 
 class ProtectedEndpoint(object):
-    def __init__(self, scopes=[], claims=[], audiences=[]):
+    def __init__(self, realm=None, scopes=[], claims=[], audiences=[]):
+        self.realm = realm
         self.scopes = scopes
         self.claims = claims
         self.audiences = audiences
-        self.exception_map = construct_exception_map(scopes, claims, audiences)
+        self.exception_map = construct_exception_map(realm, scopes,
+                claims, audiences)
 
     def __call__(self, target):
         self.target = target
@@ -32,19 +34,19 @@ class ProtectedEndpoint(object):
 
 protected_endpoint = ProtectedEndpoint
 
-def construct_exception_map(scopes, claims, audiences):
+def construct_exception_map(realm, scopes, claims, audiences):
     result = {}
     result[MissingAuthHeadersError] = Response(status=401,
-                headers={'WWW-Authenticate': authenticate_value_text(scopes),
+                headers={'WWW-Authenticate': authenticate_value_text(realm, scopes),
                          'Identify': identify_value_text(claims, audiences)})
 
     result[MalformedAccessTokenError] = Response(status=400,
                 headers={'WWW-Authenticate':
                         '%s, error="invalid_request", error_description="The Bearer token is malformed"' %
-                        (authenticate_value_text(scopes)),
+                        (authenticate_value_text(realm, scopes)),
                         'Identify': identify_value_text(claims, audiences)})
     result[InvalidSerialization] = Response(status=400,
-                headers={'WWW-Authenticate': authenticate_value_text(scopes),
+                headers={'WWW-Authenticate': authenticate_value_text(realm, scopes),
                         'Identify': '%s, error="invalid_request", error_description="The ID token is malformed"'
                         % identify_value_text(claims, audiences)})
     return result
@@ -56,8 +58,8 @@ def ensure_headers_are_present(request):
             'Identity' not in request.headers):
         raise MissingAuthHeadersError
 
-def authenticate_value_text(scopes):
-    return 'Bearer realm="PTero", scope="%s"' % ' '.join(scopes)
+def authenticate_value_text(realm, scopes):
+    return 'Bearer realm="%s", scope="%s"' % (realm, ' '.join(scopes))
 
 def identify_value_text(claims, audiences):
     return 'ID Token claims="%s", aud="%s"' % (', '.join(claims),

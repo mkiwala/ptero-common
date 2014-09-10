@@ -5,7 +5,7 @@ from ptero_common.auth import protected_endpoint
 
 app = flask.Flask('test_app')
 
-@protected_endpoint(scopes=['a','b'], claims=['c','d'], audiences=['e','f'])
+@protected_endpoint(realm='PTero', scopes=['a','b'], claims=['c','d'], audiences=['e','f'])
 def target(*args, **kwargs):
     return 'test_return_value'
 

@@ -1,6 +1,7 @@
 from flask import request, Response
 import jot
 import re
+from jot.exceptions import InvalidSerialization
 
 class MissingAuthHeadersError(Exception): pass
 class MalformedAccessTokenError(Exception): pass
@@ -10,48 +11,45 @@ class ProtectedEndpoint(object):
         self.scopes = scopes
         self.claims = claims
         self.audiences = audiences
+        self.exception_map = construct_exception_map(scopes, claims, audiences)
 
     def __call__(self, target):
         self.target = target
         return self._execute_target
 
     def _execute_target(self, *args, **kwargs):
-        response, id_token = _parse_request(request, self.scopes,
-                self.claims, self.audiences)
-        if (response):
-            return response
-        else:
-            return self.target(*args, id_token=id_token, **kwargs)
+        try:
+            id_token = self._extract_id_token()
+        except Exception as e:
+            return self.exception_map[e.__class__]
+        return self.target(*args, id_token=id_token, **kwargs)
+
+    def _extract_id_token(self):
+        ensure_headers_are_present(request)
+        access_token = parse_authorization_text(request.headers['Authorization'])
+        jwe_or_jws = jot.deserialize(request.headers['Identity'])
+        return None
 
 protected_endpoint = ProtectedEndpoint
 
-
-def _parse_request(request, scopes, claims, audiences):
-    try:
-        ensure_headers_are_present(request)
-    except MissingAuthHeadersError:
-        return Response(status=401,
+def construct_exception_map(scopes, claims, audiences):
+    result = {}
+    result[MissingAuthHeadersError] = Response(status=401,
                 headers={'WWW-Authenticate': authenticate_value_text(scopes),
-                         'Identify': identify_value_text(claims, audiences)}), None
+                         'Identify': identify_value_text(claims, audiences)})
 
-    try:
-        access_token = parse_authorization_text(request.headers['Authorization'])
-    except MalformedAccessTokenError as e:
-        return Response(status=400,
+    result[MalformedAccessTokenError] = Response(status=400,
                 headers={'WWW-Authenticate':
                         '%s, error="invalid_request", error_description="The Bearer token is malformed"' %
                         (authenticate_value_text(scopes)),
-                        'Identify': identify_value_text(claims, audiences)}), None
-    try:
-        id_token = jot.deserialize(request.headers['Identity'])
-    except:
-        return Response(status=400,
+                        'Identify': identify_value_text(claims, audiences)})
+    result[InvalidSerialization] = Response(status=400,
                 headers={'WWW-Authenticate': authenticate_value_text(scopes),
                         'Identify': '%s, error="invalid_request", error_description="The ID token is malformed"'
-                        % identify_value_text(claims, audiences)}), None
+                        % identify_value_text(claims, audiences)})
+    return result
 
 
-    return None, None
 
 def ensure_headers_are_present(request):
     if ('Authorization' not in request.headers or

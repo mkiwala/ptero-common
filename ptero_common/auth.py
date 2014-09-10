@@ -2,6 +2,7 @@ from flask import request, Response
 import jot
 import re
 
+class MissingAuthHeadersError(Exception): pass
 class MalformedAccessTokenError(Exception): pass
 
 class ProtectedEndpoint(object):
@@ -26,8 +27,9 @@ protected_endpoint = ProtectedEndpoint
 
 
 def _parse_request(request, scopes, claims, audiences):
-    if ('Authorization' not in request.headers or
-            'Identity' not in request.headers):
+    try:
+        ensure_headers_are_present(request)
+    except MissingAuthHeadersError:
         return Response(status=401,
                 headers={'WWW-Authenticate': authenticate_value_text(scopes),
                          'Identify': identify_value_text(claims, audiences)}), None
@@ -51,6 +53,10 @@ def _parse_request(request, scopes, claims, audiences):
 
     return None, None
 
+def ensure_headers_are_present(request):
+    if ('Authorization' not in request.headers or
+            'Identity' not in request.headers):
+        raise MissingAuthHeadersError
 
 def authenticate_value_text(scopes):
     return 'Bearer realm="PTero", scope="%s"' % ' '.join(scopes)

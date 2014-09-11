@@ -1,7 +1,11 @@
 from flask import request, Response
+from collections import defaultdict
 import jot
 import re
 from jot.exceptions import InvalidSerialization
+import logging
+
+LOG = logging.getLogger(__name__)
 
 class MissingAuthHeadersError(Exception): pass
 class MalformedAccessTokenError(Exception): pass
@@ -23,7 +27,11 @@ class ProtectedEndpoint(object):
         try:
             id_token = self._extract_id_token()
         except Exception as e:
-            return self.exception_map[e.__class__]
+            if (e.__class__ in self.exception_map):
+                return self.exception_map[e.__class__]
+            else:
+                LOG.exception("Unexpected exception occured while processing request url=(%s) headers=(%s)",
+                        request.url, request.headers)
         return self.target(*args, id_token=id_token, **kwargs)
 
     def _extract_id_token(self):
@@ -35,7 +43,10 @@ class ProtectedEndpoint(object):
 protected_endpoint = ProtectedEndpoint
 
 def construct_exception_map(realm, scopes, claims, audiences):
-    result = {}
+    result = defaultdict(lambda :Response(status=400,
+                headers={'WWW-Authenticate': authenticate_value_text(realm, scopes),
+                         'Identify': identify_value_text(claims, audiences)}))
+
     result[MissingAuthHeadersError] = Response(status=401,
                 headers={'WWW-Authenticate': authenticate_value_text(realm, scopes),
                          'Identify': identify_value_text(claims, audiences)})

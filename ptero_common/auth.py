@@ -14,6 +14,7 @@ class ProtectedEndpoint(object):
         self.audiences = audiences
         self.exception_map = construct_exception_map(realm, scopes,
                 claims, audiences)
+        self.mapped_exceptions = tuple(self.exception_map.keys())
 
     def __call__(self, target):
         self.target = target
@@ -22,7 +23,7 @@ class ProtectedEndpoint(object):
     def _execute_target(self, *args, **kwargs):
         try:
             id_token = self._extract_id_token()
-        except Exception as e:
+        except self.mapped_exceptions as e:
             return self.exception_map[e.__class__]
         return self.target(*args, id_token=id_token, **kwargs)
 

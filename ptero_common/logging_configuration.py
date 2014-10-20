@@ -10,7 +10,7 @@ def configure_logging(level_env_var, time_env_var):
         format_str = '%(asctime)s '
     else:
         format_str = ''
-    format_str += '%(levelname)5s ' + colored('[%(module)s.%(funcName)s] ', 'green')
+    format_str += '%(levelname)5s ' + colored('[%(name)s] ', 'green')
     format_str += '%(message)s'
 
     logging.basicConfig(format=format_str,

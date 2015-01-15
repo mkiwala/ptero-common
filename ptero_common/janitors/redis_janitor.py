@@ -7,6 +7,8 @@ LOG = logging.getLogger(__name__)
 
 
 class RedisJanitor(Janitor):
+    ALLOWED_SCHEMES = {'redis'}
+
     def clean(self):
         LOG.debug('Flushing all keys at %s', self.sanitized_url)
         connection = redis.Redis(host=self.host, port=self.port)

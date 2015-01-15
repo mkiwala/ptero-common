@@ -10,6 +10,8 @@ LOG = logging.getLogger(__name__)
 
 
 class RabbitMQJanitor(Janitor):
+    ALLOWED_SCHEMES = {'amqp'}
+
     IGNORED_EXCHANGE_NAMES = {
         '',
         'amq.direct',

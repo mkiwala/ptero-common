@@ -5,10 +5,6 @@ install: pip install tox
 
 script: tox
 
-after_script:
-    - ps -efl > var/log/ps.out
-    - bash tests/scripts/pretty_print.bash
-
 after_success:
     - pip install coveralls
     - coveralls

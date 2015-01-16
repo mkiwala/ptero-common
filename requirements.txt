@@ -1,3 +1,2 @@
 flask
 termcolor
--e git+https://github.com/mark-burnett/jot.git#egg=jot

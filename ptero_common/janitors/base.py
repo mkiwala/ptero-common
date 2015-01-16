@@ -7,6 +7,7 @@ class Janitor(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, url):
+        self.url = url
         self.url_obj = urlparse(url)
         self.sanitized_url = self.sanitize_url(self.url_obj)
 

@@ -12,9 +12,23 @@ class PostgresJanitor(Janitor):
     def clean(self):
         engine = sqlalchemy.create_engine(self.url)
 
-        meta = sqlalchemy.MetaData()
-        meta.reflect(bind=engine)
+        meta = sqlalchemy.MetaData(bind=engine, reflect=True)
 
-        for name, table in meta.tables.iteritems():
-            LOG.debug('Deleting table %s', name)
-            engine.execute(table.drop())
+        connection = engine.connect()
+        with connection.begin():
+            for table_name, table in meta.tables.iteritems():
+                for foreign_key in table.foreign_keys:
+                    LOG.debug('Removing foreign key %s from table %s',
+                              dir(foreign_key.constraint), table_name)
+                    self.drop_fk(connection, table_name, foreign_key)
+
+        with connection.begin():
+            meta.drop_all()
+
+    def drop_fk(self, connection, table_name, foreign_key):
+        connection.execute(
+            'ALTER TABLE IF EXISTS %s DROP CONSTRAINT IF EXISTS %s' % (
+                table_name,
+                foreign_key.constraint.name,
+            )
+        )

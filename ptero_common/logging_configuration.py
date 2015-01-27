@@ -6,6 +6,7 @@ import os
 
 try:
     from flask import request
+    from werkzeug.wrappers import BaseResponse as Response
 except:
     # Not everybody who uses ptero_common has requires/uses flask
     pass
@@ -52,12 +53,20 @@ def configure_logging(level_env_var, time_env_var):
 def log_response(logger):
     def _log_response(target):
         def wrapper(*args, **kwargs):
-            body, code = target(*args, **kwargs)
-
+            try:
+                result = target(*args, **kwargs)
+            except Exception as e:
+                logger.exception(
+                    "Unexpected exception while handling %s  %s:\n"
+                    "Body: %s\n%s",
+                    target.__name__.upper(), request.url, request.data, str(e))
+                raise
+            response = Response(*result)
             logger.info("Responded %s to %s  %s",
-                        code, target.__name__.upper(), request.url)
-            logger.debug("    Body: %s", body)
-            return body, code
+                response.status_code, target.__name__.upper(), request.url)
+            logger.debug("    Headers: '%s'", response.headers)
+            logger.debug("    Body: '%s'", response.get_data())
+            return result
         return wrapper
     return _log_response
 

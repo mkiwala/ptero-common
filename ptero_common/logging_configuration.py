@@ -24,6 +24,17 @@ def configure_celery_logging(service_name):
     logging.getLogger('kombu').setLevel(
         os.environ.get('PTERO_%s_KOMBU_LOG_LEVEL' % service_name, 'WARN'))
 
+def configure_web_logging(service_name):
+    configure_logging(
+        'PTERO_%s_LOG_LEVEL' % service_name,
+        'PTERO_%s_LOG_WITH_TIMESTAMPS' % service_name)
+    logging.getLogger('pika').setLevel(
+        os.environ.get('PTERO_%s_PIKA_LOG_LEVEL' % service_name, 'WARN'))
+    logging.getLogger('requests').setLevel(
+        os.environ.get('PTERO_%s_REQUESTS_LOG_LEVEL' % service_name, 'WARN'))
+    logging.getLogger('werkzeug').setLevel(
+        os.environ.get('PTERO_%s_WERKZEUG_LOG_LEVEL' % service_name, 'WARN'))
+
 
 def configure_logging(level_env_var, time_env_var):
     if int(os.environ.get(time_env_var, "1")):

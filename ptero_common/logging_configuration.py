@@ -71,7 +71,7 @@ def logged_response(logger):
     return _log_response
 
 
-def log_request(target, kind):
+def _log_request(target, kind):
     def wrapper(*args, **kwargs):
         logger = kwargs.get('logger', logging.getLogger(__name__))
         if 'logger' in kwargs:
@@ -92,5 +92,5 @@ def log_request(target, kind):
 
 class LoggedRequest(object):
     def __getattr__(self, name):
-        return log_request(getattr(requests, name), name)
+        return _log_request(getattr(requests, name), name)
 logged_request = LoggedRequest()

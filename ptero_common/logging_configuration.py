@@ -50,7 +50,7 @@ def configure_logging(level_env_var, time_env_var):
         level=os.environ.get(level_env_var, 'INFO').upper())
 
 
-def log_response(logger):
+def logged_response(logger):
     def _log_response(target):
         def wrapper(*args, **kwargs):
             try:

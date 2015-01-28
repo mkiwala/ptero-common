@@ -83,9 +83,8 @@ def _log_request(target, kind):
         r = Request(kind.upper(), *args, **kwargs)
         logger.info("%s from %s  %s", response.status_code, kind.upper(), r.url)
         for name in ['params', 'headers', 'data']:
-            if getattr(r, name):
-                logger.debug("    %s%s: %s", name[0].upper(), name[1:],
-                        pformat(getattr(r, name), indent=2, width=80))
+            logger.debug("    %s%s: %s", name[0].upper(), name[1:],
+                         pformat(getattr(r, name), indent=2, width=80))
 
         return response
     return wrapper

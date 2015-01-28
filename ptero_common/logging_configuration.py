@@ -85,7 +85,7 @@ def _log_request(target, kind):
         for name in ['params', 'headers', 'data']:
             if getattr(r, name):
                 logger.debug("    %s%s: %s", name[0].upper(), name[1:],
-                        getattr(r, name))
+                        pformat(getattr(r, name), indent=2, width=80))
 
         return response
     return wrapper

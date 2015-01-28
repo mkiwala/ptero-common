@@ -3,6 +3,7 @@ import requests
 from requests.models import Request
 import logging
 import os
+from pprint import pformat
 
 try:
     from flask import request
@@ -64,8 +65,8 @@ def logged_response(logger):
             response = Response(*result)
             logger.info("Responded %s to %s  %s",
                 response.status_code, target.__name__.upper(), request.url)
-            logger.debug("    Headers: '%s'", response.headers)
-            logger.debug("    Body: '%s'", response.get_data())
+            logger.debug("    Returning: %s",
+                         pformat(result, indent=2, width=80))
             return result
         return wrapper
     return _log_response
@@ -82,9 +83,8 @@ def _log_request(target, kind):
         r = Request(kind.upper(), *args, **kwargs)
         logger.info("%s from %s  %s", response.status_code, kind.upper(), r.url)
         for name in ['params', 'headers', 'data']:
-            if getattr(r, name):
-                logger.debug("    %s%s: %s", name[0].upper(), name[1:],
-                        getattr(r, name))
+            logger.debug("    %s%s: %s", name[0].upper(), name[1:],
+                         pformat(getattr(r, name), indent=2, width=80))
 
         return response
     return wrapper

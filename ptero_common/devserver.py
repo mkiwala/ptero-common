@@ -22,8 +22,9 @@ def mkdir_p(path):
 
 
 def service_command_line(procfile_path, workers):
-    return ['honcho', 'start', '-f', procfile_path,
-            '-c', ] + ["%s=%d" % (key, value) for key, value in workers.items()]
+    return [
+        'honcho', 'start', '-f', procfile_path, '-c',
+        ','.join(["%s=%d" % (key, value) for key, value in workers.items()])]
 
 
 def shutdown():

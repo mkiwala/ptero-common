@@ -6,7 +6,7 @@ import signal
 import time
 
 honcho_process = None
-children = set()
+child_pids = set()
 
 
 # This is from a stackoverflow answer:
@@ -28,16 +28,17 @@ def service_command_line(procfile_path, workers):
 
 
 def shutdown():
-    if signal_processes(children, signal.SIGINT):
+    if signal_processes(child_pids, signal.SIGINT):
         time.sleep(3)
-        signal_processes(children, signal.SIGKILL)
+        signal_processes(child_pids, signal.SIGKILL)
 
-def signal_processes(processes, sig):
+def signal_processes(pids, sig):
     signaled = []
-    for p in processes:
+    for p in pids:
         try:
-            p.send_signal(sig)
-            signaled.append(p.pid)
+            process = psutil.Process(p)
+            process.send_signal(sig)
+            signaled.append(process.pid)
         except psutil.NoSuchProcess:
             pass
 
@@ -49,14 +50,15 @@ def signal_processes(processes, sig):
         return False
 
 def expand_children():
-    for process in children.copy():
+    for p in child_pids.copy():
         try:
-            children.update(process.get_children(recursive=True))
+            process = psutil.Process(p)
+            child_pids.update([p.pid for p in process.get_children(recursive=True)])
         except psutil.NoSuchProcess:
             pass
 
 
-def cleanup(*args, **kwargs):
+def cleanup():
     sys.stderr.write('Shutting down the devserver.\n')
     expand_children()
     try:
@@ -71,10 +73,13 @@ def cleanup(*args, **kwargs):
 
     shutdown()
 
+def log_and_cleanup(signum, frame):
+    sys.stderr.write("RECEIVED SIGNAL: '%s'\n" % signum)
+    cleanup()
 
 def setup_signal_handlers():
-    signal.signal(signal.SIGINT, cleanup)
-    signal.signal(signal.SIGTERM, cleanup)
+    signal.signal(signal.SIGINT, log_and_cleanup)
+    signal.signal(signal.SIGTERM, log_and_cleanup)
 
 
 def run(logdir, procfile_path, workers):
@@ -96,7 +101,7 @@ def run(logdir, procfile_path, workers):
         stdout=outlog, stderr=errlog)
     time.sleep(3)
     sys.stderr.write('The devserver is now up.\n')
-    children.update(psutil.Process().get_children(recursive=True))
+    child_pids.update([p.pid for p in psutil.Process().get_children(recursive=True)])
 
     honcho_process.wait()
     cleanup()

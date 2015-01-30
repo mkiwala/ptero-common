@@ -49,7 +49,7 @@ def signal_processes(processes, sig):
         return False
 
 def expand_children():
-    for process in children:
+    for process in children.copy():
         try:
             children.update(process.get_children(recursive=True))
         except psutil.NoSuchProcess:

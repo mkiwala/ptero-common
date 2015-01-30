@@ -56,6 +56,7 @@ def expand_children():
 
 
 def cleanup(*args, **kwargs):
+    sys.stderr.write('Shutting down the devserver.\n')
     expand_children()
     try:
         honcho_process.send_signal(signal.SIGINT)
@@ -85,7 +86,7 @@ def run(logdir, procfile_path, workers):
         errlog = sys.stderr
     else:
         mkdir_p(logdir)
-        sys.stderr.write('Starting up devserver... logging to: %s' % logdir)
+        sys.stderr.write('Launching the devserver... logging to: %s\n' % logdir)
         outlog = open(os.path.join(logdir, 'honcho.out'), 'w')
         errlog = open(os.path.join(logdir, 'honcho.err'), 'w')
 
@@ -93,7 +94,7 @@ def run(logdir, procfile_path, workers):
         service_command_line(procfile_path, workers), shell=False,
         stdout=outlog, stderr=errlog)
     time.sleep(3)
-    sys.stderr.write('devserver is now up...')
+    sys.stderr.write('The devserver is now up.\n')
     children.update(psutil.Process().get_children(recursive=True))
 
     honcho_process.wait()

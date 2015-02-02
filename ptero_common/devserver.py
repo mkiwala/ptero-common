@@ -78,8 +78,11 @@ def cleanup():
 
 
 def log_and_cleanup(signum, frame):
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
     sys.stderr.write("RECEIVED SIGNAL: '%s'\n" % signum)
     cleanup()
+    sys.exit(0)
 
 
 def setup_signal_handlers():

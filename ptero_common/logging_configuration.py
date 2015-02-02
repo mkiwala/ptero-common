@@ -26,6 +26,7 @@ def configure_celery_logging(service_name):
     logging.getLogger('kombu').setLevel(
         os.environ.get('PTERO_%s_KOMBU_LOG_LEVEL' % service_name, 'WARN'))
 
+
 def configure_web_logging(service_name):
     configure_logging(
         'PTERO_%s_LOG_LEVEL' % service_name,
@@ -63,7 +64,8 @@ def logged_response(logger):
                     target.__name__.upper(), request.url, request.data, str(e))
                 raise
             response = Response(*result)
-            logger.info("Responded %s to %s  %s",
+            logger.info(
+                "Responded %s to %s  %s",
                 response.status_code, target.__name__.upper(), request.url)
             logger.debug("    Returning: %s",
                          pformat(result, indent=2, width=80))

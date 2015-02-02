@@ -12,9 +12,9 @@ class Janitor(object):
         self.sanitized_url = self.sanitize_url(self.url_obj)
 
         if self.url_obj.scheme not in self.ALLOWED_SCHEMES:
-            raise JanitorException('Scheme "%s" not allowed.  '
-                    'Expected something from: %s' %
-                    (self.url_obj.scheme, self.ALLOWED_SCHEMES))
+            raise JanitorException(
+                'Scheme "%s" not allowed.  Expected something from: %s' %
+                (self.url_obj.scheme, self.ALLOWED_SCHEMES))
 
     @abc.abstractmethod
     def clean(self):  # pragma: no cover

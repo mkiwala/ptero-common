@@ -1,1 +1,2 @@
-class JanitorException(Exception): pass
+class JanitorException(Exception):
+    pass

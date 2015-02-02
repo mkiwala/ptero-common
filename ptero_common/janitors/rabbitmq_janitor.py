@@ -1,5 +1,5 @@
 from .base import Janitor
-from .exceptions import *
+from .exceptions import *  # noqa
 from urlparse import urljoin, urlunparse
 import logging
 import requests
@@ -24,9 +24,9 @@ class RabbitMQJanitor(Janitor):
 
     def __init__(self, url, api_port=15672):
         super(RabbitMQJanitor, self).__init__(url)
-        self.base_api_url = urlunparse(('http',
-            '%s:%s' % (self.url_obj.hostname, api_port),
-            '', '', '', ''))
+        self.base_api_url = urlunparse(
+            ('http', '%s:%s' % (self.url_obj.hostname, api_port),
+             '', '', '', ''))
 
     def clean(self):
         LOG.debug('Beginning purge of %s', self.sanitized_url)
@@ -114,8 +114,9 @@ class RabbitMQJanitor(Janitor):
         response = method(self.api_url(*parts), auth=self.api_auth())
 
         if int(response.status_code / 100) != 2:
-            LOG.error('Got unexpected response code (%s) from url %s: %s',
-                    response.status_code, self.api_url(*parts), response.text)
+            LOG.error(
+                'Got unexpected response code (%s) from url %s: %s',
+                response.status_code, self.api_url(*parts), response.text)
             raise JanitorException()
 
         if response.status_code == 204:

@@ -14,7 +14,7 @@ child_pids = set()
 def mkdir_p(path):
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
@@ -31,6 +31,7 @@ def shutdown():
     if signal_processes(child_pids, signal.SIGINT):
         time.sleep(3)
         signal_processes(child_pids, signal.SIGKILL)
+
 
 def signal_processes(pids, sig):
     signaled = []
@@ -49,11 +50,13 @@ def signal_processes(pids, sig):
     else:
         return False
 
+
 def expand_children():
     for p in child_pids.copy():
         try:
             process = psutil.Process(p)
-            child_pids.update([p.pid for p in process.get_children(recursive=True)])
+            child_pids.update(
+                [p.pid for p in process.get_children(recursive=True)])
         except psutil.NoSuchProcess:
             pass
 
@@ -73,9 +76,11 @@ def cleanup():
 
     shutdown()
 
+
 def log_and_cleanup(signum, frame):
     sys.stderr.write("RECEIVED SIGNAL: '%s'\n" % signum)
     cleanup()
+
 
 def setup_signal_handlers():
     signal.signal(signal.SIGINT, log_and_cleanup)
@@ -101,7 +106,8 @@ def run(logdir, procfile_path, workers):
         stdout=outlog, stderr=errlog)
     time.sleep(3)
     sys.stderr.write('The devserver is now up.\n')
-    child_pids.update([p.pid for p in psutil.Process().get_children(recursive=True)])
+    child_pids.update(
+        [p.pid for p in psutil.Process().get_children(recursive=True)])
 
     honcho_process.wait()
     cleanup()

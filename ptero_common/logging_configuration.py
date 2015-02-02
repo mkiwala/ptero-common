@@ -80,7 +80,16 @@ def _log_request(target, kind):
         if 'logger' in kwargs:
             del kwargs['logger']
 
-        response = target(*args, **kwargs)
+        try:
+            response = target(*args, **kwargs)
+        except Exception as e:
+            logger.exception(
+                "Unexpected exception while sending %s request\n"
+                "Args: %s\n"
+                "Keyword Args: %s\n"
+                "Exception: %s\n",
+                kind.upper(), pformat(args), pformat(kwargs), str(e))
+            raise
 
         r = Request(kind.upper(), *args, **kwargs)
         logger.info("%s from %s  %s", response.status_code, kind.upper(), r.url)

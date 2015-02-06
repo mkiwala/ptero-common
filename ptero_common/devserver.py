@@ -7,6 +7,7 @@ import time
 
 honcho_process = None
 child_pids = set()
+_pidfile = None
 
 
 # This is from a stackoverflow answer:
@@ -31,6 +32,8 @@ def shutdown():
     if signal_processes(child_pids, signal.SIGINT):
         time.sleep(3)
         signal_processes(child_pids, signal.SIGKILL)
+    if _pidfile is not None:
+        os.remove(_pidfile)
 
 
 def signal_processes(pids, sig):
@@ -89,9 +92,18 @@ def setup_signal_handlers():
     signal.signal(signal.SIGINT, log_and_cleanup)
     signal.signal(signal.SIGTERM, log_and_cleanup)
 
+def write_pidfile(pidfile):
+    global _pidfile
+    if pidfile is not None:
+        _pidfile = pidfile
+        mkdir_p(os.path.dirname(pidfile))
+        with open(pidfile, 'w') as ofile:
+            ofile.write(str(os.getpid()))
 
-def run(logdir, procfile_path, workers):
+def run(logdir, procfile_path, workers, pidfile):
     global honcho_process
+
+    write_pidfile(pidfile)
 
     setup_signal_handlers()
 

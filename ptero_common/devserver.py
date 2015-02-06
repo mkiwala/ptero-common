@@ -95,10 +95,10 @@ def setup_signal_handlers():
 def write_pidfile(pidfile):
     global _pidfile
     if pidfile is not None:
-        _pidfile = pidfile
         mkdir_p(os.path.dirname(pidfile))
         with open(pidfile, 'w') as ofile:
             ofile.write(str(os.getpid()))
+        _pidfile = pidfile
 
 def run(logdir, procfile_path, workers, pidfile):
     global honcho_process

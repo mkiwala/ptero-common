@@ -1,6 +1,7 @@
 from termcolor import colored
 import requests
 from requests.models import Request
+from requests.exceptions import ConnectionError
 import logging
 import os
 from pprint import pformat
@@ -82,6 +83,8 @@ def _log_request(target, kind):
 
         try:
             response = target(*args, **kwargs)
+        except ConnectionError:
+            raise
         except Exception as e:
             logger.exception(
                 "Unexpected exception while sending %s request\n"

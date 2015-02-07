@@ -94,7 +94,12 @@ def _log_request(target, kind):
                 kind.upper(), pformat(args), pformat(kwargs), str(e))
             raise
 
+        if 'timeout' in kwargs:
+            # timout is an argument to requests.get/post/ect but not
+            # Request.__init__
+            del kwargs['timeout']
         r = Request(kind.upper(), *args, **kwargs)
+
         logger.info("%s from %s  %s", response.status_code, kind.upper(), r.url)
         for name in ['params', 'headers', 'data']:
             logger.debug("    %s%s: %s", name[0].upper(), name[1:],

@@ -102,7 +102,7 @@ def write_pidfile(pidfile):
         _pidfile = pidfile
 
 
-def run(logdir, procfile_path, workers, pidfile):
+def run(logdir, procfile_path, workers, pidfile=None):
     global honcho_process
 
     write_pidfile(pidfile)

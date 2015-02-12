@@ -98,12 +98,14 @@ def run(logdir, procfile_path, workers, daemondir=None):
         with daemon.DaemonContext(
                 working_directory='.',
                 umask=0o002,
-                pidfile=lockfile.FileLock(os.path.join(daemondir, 'devserver.pid')),
+                pidfile=lockfile.FileLock(
+                    os.path.join(daemondir, 'devserver.pid')),
                 stdout=open(os.path.join(daemondir, 'devserver.out'), 'w'),
                 stderr=open(os.path.join(daemondir, 'devserver.err'), 'w')):
             _run(logdir, procfile_path, workers)
     else:
         _run(logdir, procfile_path, workers)
+
 
 def _run(logdir, procfile_path, workers):
     global honcho_process

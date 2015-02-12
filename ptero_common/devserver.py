@@ -150,8 +150,8 @@ def main():
     run(
         logdir=arguments.logdir,
         workers={
-            'http_worker':arguments.num_http_workers,
-            'submit_worker':arguments.num_submit_workers,
+            'http_worker': arguments.num_http_workers,
+            'submit_worker': arguments.num_submit_workers,
         },
         procfile_path=arguments.procfile,
         daemondir=arguments.daemondir)

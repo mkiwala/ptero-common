@@ -2,3 +2,4 @@ flask
 honcho
 psutil
 termcolor
+python_daemon

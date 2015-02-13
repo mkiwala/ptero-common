@@ -1,13 +1,25 @@
+import argparse
 import errno
 import os
 import sys
 import psutil
 import signal
 import time
+import daemon
+import lockfile
 
 honcho_process = None
 child_pids = set()
-_pidfile = None
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num-http-workers', type=int, default=2)
+    parser.add_argument('--num-workers', type=int, default=2)
+    parser.add_argument('--logdir', default='-')
+    parser.add_argument('--daemondir')
+    parser.add_argument('--procfile')
+    return parser.parse_args()
 
 
 # This is from a stackoverflow answer:
@@ -32,8 +44,6 @@ def shutdown():
     if signal_processes(child_pids, signal.SIGINT):
         time.sleep(3)
         signal_processes(child_pids, signal.SIGKILL)
-    if _pidfile is not None:
-        os.remove(_pidfile)
 
 
 def signal_processes(pids, sig):
@@ -93,21 +103,23 @@ def setup_signal_handlers():
     signal.signal(signal.SIGTERM, log_and_cleanup)
 
 
-def write_pidfile(pidfile):
-    global _pidfile
-    mkdir_p(os.path.dirname(pidfile))
-    with open(pidfile, 'w') as ofile:
-        ofile.write(str(os.getpid()))
-    _pidfile = pidfile
+def run(logdir, procfile_path, workers, daemondir=None):
+    if daemondir is not None:
+        mkdir_p(daemondir)
+        with daemon.DaemonContext(
+                working_directory='.',
+                umask=0o002,
+                pidfile=lockfile.FileLock(
+                    os.path.join(daemondir, 'devserver.pid')),
+                stdout=open(os.path.join(daemondir, 'devserver.out'), 'w'),
+                stderr=open(os.path.join(daemondir, 'devserver.err'), 'w')):
+            _run(logdir, procfile_path, workers)
+    else:
+        _run(logdir, procfile_path, workers)
 
 
-def run(logdir, procfile_path, workers, pidfile=None):
+def _run(logdir, procfile_path, workers):
     global honcho_process
-
-    if pidfile is not None:
-        if os.fork():
-            sys.exit()
-        write_pidfile(pidfile)
 
     setup_signal_handlers()
 
@@ -130,3 +142,16 @@ def run(logdir, procfile_path, workers, pidfile=None):
 
     honcho_process.wait()
     cleanup()
+
+
+def main():
+    arguments = parse_args()
+
+    run(
+        logdir=arguments.logdir,
+        workers={
+            'http_worker': arguments.num_http_workers,
+            'worker': arguments.num_workers,
+        },
+        procfile_path=arguments.procfile,
+        daemondir=arguments.daemondir)

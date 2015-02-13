@@ -15,7 +15,7 @@ child_pids = set()
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-http-workers', type=int, default=2)
-    parser.add_argument('--num-submit-workers', type=int, default=2)
+    parser.add_argument('--num-workers', type=int, default=2)
     parser.add_argument('--logdir', default='-')
     parser.add_argument('--daemondir')
     parser.add_argument('--procfile')
@@ -151,7 +151,7 @@ def main():
         logdir=arguments.logdir,
         workers={
             'http_worker': arguments.num_http_workers,
-            'submit_worker': arguments.num_submit_workers,
+            'worker': arguments.num_workers,
         },
         procfile_path=arguments.procfile,
         daemondir=arguments.daemondir)

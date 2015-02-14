@@ -48,7 +48,7 @@ class HTTP(celery.Task):
                 response.status_code, delay, self.request.retries+1,
                 self.max_retries+1)
             self.retry(
-                exc=celery.exceptions.MaxRetriesExceeded,
+                exc=celery.exceptions.MaxRetriesExceededError,
                 countdown=delay)
 
         return response.json()

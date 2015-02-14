@@ -6,7 +6,7 @@ import psutil
 import signal
 import time
 import daemon
-import lockfile
+from daemon.pidfile import TimeoutPIDLockFile
 
 honcho_process = None
 child_pids = set()
@@ -109,7 +109,7 @@ def run(logdir, procfile_path, workers, daemondir=None):
         with daemon.DaemonContext(
                 working_directory='.',
                 umask=0o002,
-                pidfile=lockfile.FileLock(
+                pidfile=TimeoutPIDLockFile(
                     os.path.join(daemondir, 'devserver.pid')),
                 stdout=open(os.path.join(daemondir, 'devserver.out'), 'w'),
                 stderr=open(os.path.join(daemondir, 'devserver.err'), 'w')):

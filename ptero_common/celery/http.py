@@ -51,7 +51,24 @@ class HTTP(celery.Task):
                 exc=celery.exceptions.MaxRetriesExceededError,
                 countdown=delay)
 
-        return response.json()
+        response_info = {
+                "method": method,
+                "url": url,
+                "data": kwargs,
+                "status_code": response.status_code,
+                "text": response.text,
+                "headers": response.text,
+        }
+
+        if response.status_code < 200 or response.status_code >= 300:
+            LOG.info("Got response (%s), returning response info.",
+                     response.status_code)
+            return response_info
+        elif not self.ignore_result:
+            response_info["json"] = response.json()
+            return response_info
+        else:
+            return
 
     def body(self, kwargs):
         return json.dumps(kwargs)

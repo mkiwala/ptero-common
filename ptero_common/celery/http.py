@@ -15,7 +15,7 @@ DELAYS.extend([60*MIN for i in range(72)])
 
 CODES_TO_RETRY = set([
     408,  # Request Timeout
-    # 500,  # Internal Server Error, I don't think we should retry these
+    500,  # Internal Server Error
     502,  # Bad Gateway
     503,  # Service Unavailable
     504,  # Gateway Timeout

@@ -52,12 +52,12 @@ class HTTP(celery.Task):
                 countdown=delay)
 
         response_info = {
-                "method": method,
-                "url": url,
-                "data": kwargs,
-                "status_code": response.status_code,
-                "text": response.text,
-                "headers": response.text,
+            "method": method,
+            "url": url,
+            "data": kwargs,
+            "status_code": response.status_code,
+            "text": response.text,
+            "headers": response.text,
         }
 
         if response.status_code < 200 or response.status_code >= 300:

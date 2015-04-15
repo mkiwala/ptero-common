@@ -10,8 +10,8 @@ __all__ = ['HTTP', 'HTTPWithResult']
 LOG = logging.getLogger(__name__)
 
 MIN = 60
-DELAYS = [1, 5, 10, 30, 60, 2*MIN, 4*MIN, 10*MIN, 30*MIN, 60*MIN]
-DELAYS.extend([60*MIN for i in range(72)])
+DELAYS = [1, 5, 10, 30, 60, 2 * MIN, 4 * MIN, 10 * MIN, 30 * MIN, 60 * MIN]
+DELAYS.extend([60 * MIN for i in range(72)])
 
 CODES_TO_RETRY = set([
     408,  # Request Timeout
@@ -37,16 +37,16 @@ class HTTP(celery.Task):
             LOG.info(
                 "A ConnectionError occured for while attempting to send "
                 "%s  %s, retrying in %s seconds. Attempt %d of %d.",
-                method.upper(), url, delay, self.request.retries+1,
-                self.max_retries+1)
+                method.upper(), url, delay, self.request.retries + 1,
+                self.max_retries + 1)
             self.retry(exc=exc, countdown=delay)
 
         if response.status_code in CODES_TO_RETRY:
             delay = DELAYS[self.request.retries]
             LOG.info(
                 "Got response (%s), retrying in %s seconds.  Attempt %d of %d.",
-                response.status_code, delay, self.request.retries+1,
-                self.max_retries+1)
+                response.status_code, delay, self.request.retries + 1,
+                self.max_retries + 1)
             self.retry(
                 exc=celery.exceptions.MaxRetriesExceededError,
                 countdown=delay)

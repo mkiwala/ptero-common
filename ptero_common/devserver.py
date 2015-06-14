@@ -69,7 +69,7 @@ def expand_children():
         try:
             process = psutil.Process(p)
             child_pids.update(
-                [p.pid for p in process.get_children(recursive=True)])
+                [p.pid for p in process.children(recursive=True)])
         except psutil.NoSuchProcess:
             pass
 
@@ -138,7 +138,7 @@ def _run(logdir, procfile_path, workers):
     time.sleep(3)
     sys.stderr.write('The devserver is now up.\n')
     child_pids.update(
-        [p.pid for p in psutil.Process().get_children(recursive=True)])
+        [p.pid for p in psutil.Process().children(recursive=True)])
 
     honcho_process.wait()
     cleanup()

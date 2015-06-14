@@ -5,6 +5,7 @@ from requests.exceptions import ConnectionError
 import logging
 import os
 from pprint import pformat
+from pythonjsonlogger import jsonlogger
 
 try:
     from flask import request
@@ -48,9 +49,18 @@ def configure_logging(level_env_var, time_env_var):
     format_str += '%(levelname)5s ' + colored('[%(name)s] ', 'green')
     format_str += '%(message)s'
 
-    logging.basicConfig(
-        format=format_str,
-        level=os.environ.get(level_env_var, 'INFO').upper())
+    if int(os.environ.get('PTERO_LOG_FORMAT_JSON', "0")):
+        formatter = jsonlogger.JsonFormatter(format_str)
+    else:
+        formatter = logging.Formatter(format_str)
+
+    logHandler = logging.StreamHandler()
+    logHandler.setFormatter(formatter)
+
+    logger = logging.getLogger()
+    logger.addHandler(logHandler)
+
+    logger.setLevel(os.environ.get(level_env_var, 'INFO').upper())
 
 
 def logged_response(logger):

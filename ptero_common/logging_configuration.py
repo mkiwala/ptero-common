@@ -14,6 +14,7 @@ except:
     # Not everybody who uses ptero_common has requires/uses flask
     pass
 
+
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         jsonlogger.JsonFormatter.add_fields(self, log_record, record,
@@ -22,6 +23,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
             log_record['workflowId'] = request.workflow_id
 
         log_record['component'] = 'PTero'
+
 
 def configure_celery_logging(service_name):
     configure_logging(

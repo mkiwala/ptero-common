@@ -21,6 +21,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         if hasattr(request, "workflow_id"):
             log_record['workflowId'] = request.workflow_id
 
+        log_record['component'] = 'PTero'
+
 def configure_celery_logging(service_name):
     configure_logging(
         'PTERO_%s_LOG_LEVEL' % service_name,
@@ -56,7 +58,8 @@ def configure_logging(level_env_var, time_env_var):
     format_str += '%(message)s'
 
     if int(os.environ.get('PTERO_LOG_FORMAT_JSON', "0")):
-        formatter = CustomJsonFormatter(format_str + '%s(workflowId)')
+        formatter = CustomJsonFormatter(format_str + '%s(workflowId)' +
+                '%s(component)')
     else:
         formatter = logging.Formatter(format_str)
 

@@ -83,7 +83,8 @@ def logged_response(logger):
                 logger.exception(
                     "Unexpected exception while handling %s  %s:\n"
                     "Body: %s\n%s",
-                    target.__name__.upper(), request.url, request._cached_data, str(e))
+                    target.__name__.upper(), request.url,
+                    request._cached_data, str(e))
                 raise
             response = Response(*result)
             logger.info(

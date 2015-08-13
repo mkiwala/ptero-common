@@ -24,6 +24,9 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 
         log_record['component'] = 'PTero'
 
+    def formatException(exc_info):
+        return exc_info[2].format_exc(3)
+
 
 def configure_celery_logging(service_name):
     configure_logging(
@@ -90,6 +93,9 @@ def logged_response(logger):
             logger.info(
                 "Responded %s to %s  %s",
                 response.status_code, target.__name__.upper(), request.url)
+            if hasattr(request, '_cached_data'):
+                logger.debug("    Body: %s",
+                        pformat(request._cached_data, indent=2, width=80))
             logger.debug("    Returning: %s",
                          pformat(result, indent=2, width=80))
             return result

@@ -11,7 +11,10 @@ class RedisJanitor(Janitor):
 
     def clean(self):
         LOG.debug('Flushing all keys at %s', self.sanitized_url)
-        connection = redis.Redis(host=self.host, port=self.port)
+        if self.port is None:
+            connection = redis.Redis(host=self.host)
+        else:
+            connection = redis.Redis(host=self.host, port=self.port)
         connection.flushall()
 
     @property

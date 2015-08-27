@@ -80,7 +80,8 @@ def configure_logging(level_env_var, time_env_var):
 def logged_response(logger):
     def _log_response(target):
         def wrapper(*args, **kwargs):
-            cached_data = getattr(request, '_cached_data', None)
+            cached_data = pformat(getattr(request, '_cached_data', None),
+                indent=2, width=80)
             try:
                 result = target(*args, **kwargs)
             except Exception as e:
@@ -94,8 +95,7 @@ def logged_response(logger):
                 "Responded %s to %s  %s",
                 response.status_code, target.__name__.upper(), request.url)
             if cached_data is not None:
-                logger.debug("    Body: %s",
-                        pformat(cached_data, indent=2, width=80))
+                logger.debug("    Body: %s", cached_data)
             logger.debug("    Returning: %s",
                          pformat(result, indent=2, width=80))
             return result

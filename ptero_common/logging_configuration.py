@@ -80,22 +80,22 @@ def configure_logging(level_env_var, time_env_var):
 def logged_response(logger):
     def _log_response(target):
         def wrapper(*args, **kwargs):
+            cached_data = getattr(request, '_cached_data', None)
             try:
                 result = target(*args, **kwargs)
             except Exception as e:
                 logger.exception(
                     "Unexpected exception while handling %s  %s:\n"
                     "Body: %s\n%s",
-                    target.__name__.upper(), request.url,
-                    request._cached_data, str(e))
+                    target.__name__.upper(), request.url, cached_data, str(e))
                 raise
             response = Response(*result)
             logger.info(
                 "Responded %s to %s  %s",
                 response.status_code, target.__name__.upper(), request.url)
-            if hasattr(request, '_cached_data'):
+            if cached_data is not None:
                 logger.debug("    Body: %s",
-                        pformat(request._cached_data, indent=2, width=80))
+                        pformat(cached_data, indent=2, width=80))
             logger.debug("    Returning: %s",
                          pformat(result, indent=2, width=80))
             return result

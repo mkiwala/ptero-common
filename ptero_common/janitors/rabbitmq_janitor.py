@@ -18,6 +18,7 @@ class RabbitMQJanitor(Janitor):
         'amq.fanout',
         'amq.headers',
         'amq.match',
+        'amq.rabbitmq.log',
         'amq.rabbitmq.trace',
         'amq.topic',
     }

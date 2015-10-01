@@ -10,22 +10,23 @@ __all__ = ['perform_cleanup']
 LOG = logging.getLogger(__name__)
 
 
-def perform_cleanup(janitor_factory=None, required_envvars=None):
-    init()
-    validate_perform_cleanup_args(janitor_factory, required_envvars)
+def perform_cleanup(janitor_spec):
+    args = parse_args(janitor_spec)
+    logging.basicConfig(level=args.log_level)
+    validate_allowed(args.force)
+    validate_janitor_spec(janitor_spec)
 
+    for janitor_name,janitor in janitor_spec.iteritems():
+        if janitor['do_cleanup']:
+            _perform_cleanup(janitor_name, janitor)
+
+
+def _perform_cleanup(janitor_name,janitor):
     try:
-        janitors = janitor_factory()
+        janitor['cleanup_action']()
     except:
-        LOG.exception('Failed to construct all janitors')
+        LOG.exception('Janitor %s failed to cleanup', janitor_name)
         sys.exit(1)
-
-    for janitor in janitors:
-        try:
-            janitor.clean()
-        except:
-            LOG.exception('Janitor %s failed to cleanup', janitor)
-            sys.exit(1)
 
 
 def validate_allowed(force):
@@ -46,7 +47,21 @@ def validate_environment(required_envvar_names):
         sys.exit(1)
 
 
-def parse_args():
+def validate_janitor_spec(janitor_spec):
+    for janitor_name,janitor in janitor_spec.iteritems():
+        if janitor['do_cleanup']:
+            _validate_janitor_spec(janitor_name, janitor)
+
+def _validate_janitor_spec(janitor_name, janitor):
+    if janitor['required_envvars']:
+        validate_environment(janitor['required_envvars'])
+
+    if not callable(janitor['cleanup_action']):
+        LOG.error('cleanup_action for %s must be callable' % janitor_name)
+        sys.exit(1)
+
+
+def parse_args(janitor_spec):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--force', action='store_true', default=False,
@@ -54,19 +69,15 @@ def parse_args():
 
     parser.add_argument('--log-level', dest='log_level', default='WARN')
 
-    return parser.parse_args()
+    parser.add_argument('--all', action='store_true', default=False)
 
+    for k in janitor_spec.keys():
+        parser.add_argument('--%s' % k, action='store_true', default=False)
 
-def init():
-    args = parse_args()
-    logging.basicConfig(level=args.log_level)
-    validate_allowed(args.force)
+    args = parser.parse_args()
 
+    for k in janitor_spec.keys():
+        janitor_spec[k].update({'do_cleanup':
+            getattr(args,k) or args.all})
 
-def validate_perform_cleanup_args(janitor_factory, required_envvars):
-    if required_envvars:
-        validate_environment(required_envvars)
-
-    if not callable(janitor_factory):
-        LOG.error('janitor_factory must be callable')
-        sys.exit(1)
+    return args

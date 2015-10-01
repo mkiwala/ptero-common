@@ -16,12 +16,12 @@ def perform_cleanup(janitor_spec):
     validate_allowed(args.force)
     validate_janitor_spec(janitor_spec)
 
-    for janitor_name,janitor in janitor_spec.iteritems():
+    for janitor_name, janitor in janitor_spec.iteritems():
         if janitor['do_cleanup']:
             _perform_cleanup(janitor_name, janitor)
 
 
-def _perform_cleanup(janitor_name,janitor):
+def _perform_cleanup(janitor_name, janitor):
     try:
         janitor['cleanup_action']()
     except:
@@ -48,9 +48,10 @@ def validate_environment(required_envvar_names):
 
 
 def validate_janitor_spec(janitor_spec):
-    for janitor_name,janitor in janitor_spec.iteritems():
+    for janitor_name, janitor in janitor_spec.iteritems():
         if janitor['do_cleanup']:
             _validate_janitor_spec(janitor_name, janitor)
+
 
 def _validate_janitor_spec(janitor_name, janitor):
     if janitor['required_envvars']:
@@ -78,6 +79,6 @@ def parse_args(janitor_spec):
 
     for k in janitor_spec.keys():
         janitor_spec[k].update({'do_cleanup':
-            getattr(args,k) or args.all})
+            getattr(args, k) or args.all})
 
     return args

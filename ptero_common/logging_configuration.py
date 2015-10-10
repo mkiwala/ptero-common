@@ -6,6 +6,11 @@ import logging
 import os
 from pprint import pformat
 from pythonjsonlogger import jsonlogger
+import sys
+import traceback
+
+MAX_DATA_LENGTH = int(os.environ.get("PTERO_LOG_MAX_DATA_LENGTH", "512"))
+TRACEBACK_DEPTH = int(os.environ.get("PTERO_LOG_EXCEPTION_TRACEBACK_DEPTH", "3"))
 
 try:
     from flask import request
@@ -15,17 +20,26 @@ except:
     pass
 
 
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
-    def add_fields(self, log_record, record, message_dict):
-        jsonlogger.JsonFormatter.add_fields(self, log_record, record,
-                message_dict)
-        if hasattr(request, "workflow_id"):
-            log_record['workflowId'] = request.workflow_id
+class CustomFormatter(logging.Formatter):
+    def formatException(self, exc_info):
+        return ''.join(traceback.format_tb(
+            sys.exc_info()[2], TRACEBACK_DEPTH)) + _pformat(sys.exc_info()[1])
 
-        log_record['component'] = 'PTero'
 
-    def formatException(exc_info):
-        return exc_info[2].format_exc(3)
+def log_exception(logger, *args, **kwargs):
+    if 'extra' in kwargs:
+        my_extra = kwargs['extra'].copy()
+    else:
+        my_extra = {}
+
+    my_extra['exception'] = _pformat(sys.exc_info()[1])
+    for i, tb_line in enumerate(
+            traceback.format_tb(sys.exc_info()[2], TRACEBACK_DEPTH)):
+        my_extra['traceback-%s' % (i+1)] = tb_line
+
+    logger.warn(_pformat(my_extra))
+    kwargs['extra'] = my_extra
+    logger.exception(*args, **kwargs)
 
 
 def configure_celery_logging(service_name):
@@ -59,14 +73,13 @@ def configure_logging(level_env_var, time_env_var):
         format_str = '%(asctime)s '
     else:
         format_str = ''
-    format_str += '%(levelname)5s ' + colored('[%(name)s] ', 'green')
+    format_str += '%(levelname)5s '
     format_str += '%(message)s'
 
     if int(os.environ.get('PTERO_LOG_FORMAT_JSON', "0")):
-        formatter = CustomJsonFormatter(format_str + '%s(workflowId)' +
-                '%s(component)')
+        formatter = jsonlogger.JsonFormatter(format_str)
     else:
-        formatter = logging.Formatter(format_str)
+        formatter = CustomFormatter(format_str)
 
     logHandler = logging.StreamHandler()
     logHandler.setFormatter(formatter)
@@ -80,34 +93,53 @@ def configure_logging(level_env_var, time_env_var):
 def logged_response(logger):
     def _log_response(target):
         def wrapper(*args, **kwargs):
-            cached_data = pformat(getattr(request, '_cached_data', None),
-                indent=2, width=80)
+            label = '%s %s' % (target.__name__.upper(), request.url)
+            logger.info(
+                "Handling %s from %s", label, request.access_route[0])
+
+            request_data = _pformat(getattr(request, '_cached_data', None))
+            logger.debug("Body of %s: %s", label, request_data)
+
             try:
                 result = target(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 logger.exception(
-                    "Unexpected exception while handling %s  %s:\n"
-                    "Body: %s\n%s",
-                    target.__name__.upper(), request.url, cached_data, str(e))
+                    "Exception while handling %s from %s:\n"
+                    "Body: %s", label, request.access_route[0], request_data)
                 raise
             response = Response(*result)
             logger.info(
-                "Responded %s to %s  %s",
-                response.status_code, target.__name__.upper(), request.url)
-            if cached_data is not None:
-                logger.debug("    Body: %s", cached_data)
-            logger.debug("    Returning: %s",
-                         pformat(result, indent=2, width=80))
+                "Responding %s to %s", response.status_code, label)
+
+            logger.debug("Full response to %s: %s", label, _pformat(result))
             return result
         return wrapper
     return _log_response
 
 
+def _pformat(data):
+    return pformat(data, indent=2, width=80)[:MAX_DATA_LENGTH]
+
+
 def _log_request(target, kind):
     def wrapper(*args, **kwargs):
+
         logger = kwargs.get('logger', logging.getLogger(__name__))
         if 'logger' in kwargs:
             del kwargs['logger']
+
+        kwargs_for_constructor = kwargs.copy()
+        if 'timeout' in kwargs_for_constructor:
+            # timout is an argument to requests.get/post/ect but not
+            # Request.__init__
+            del kwargs_for_constructor['timeout']
+        request = Request(kind.upper(), *args, **kwargs_for_constructor)
+
+        label = '%s %s' % (kind.upper(), request.url)
+        logger.info('Sending %s', label)
+        logger.debug("Params for %s: %s", label, _pformat(request.params))
+        logger.debug("Headers for %s: %s", label, _pformat(request.headers))
+        logger.debug("Data for %s: %s", label, _pformat(request.data))
 
         try:
             response = target(*args, **kwargs)
@@ -115,23 +147,18 @@ def _log_request(target, kind):
             raise
         except Exception as e:
             logger.exception(
-                "Unexpected exception while sending %s request\n"
-                "Args: %s\n"
-                "Keyword Args: %s\n"
-                "Exception: %s\n",
-                kind.upper(), pformat(args), pformat(kwargs), str(e))
+                "Exception while sending %s:\n"
+                "  Args: %s\n"
+                "  Keyword Args: %s",
+                label, _pformat(args), _pformat(kwargs))
             raise
 
-        if 'timeout' in kwargs:
-            # timout is an argument to requests.get/post/ect but not
-            # Request.__init__
-            del kwargs['timeout']
-        r = Request(kind.upper(), *args, **kwargs)
 
-        logger.info("%s from %s  %s", response.status_code, kind.upper(), r.url)
-        for name in ['params', 'headers', 'data']:
-            logger.debug("    %s%s: %s", name[0].upper(), name[1:],
-                         pformat(getattr(r, name), indent=2, width=80))
+        logger.info("Got %s from %s", response.status_code, label)
+        logger.debug("Body of response from %s: %s", label,
+                _pformat(response.text))
+        logger.debug("Headers in response from %s: %s", label,
+                _pformat(response.headers))
 
         return response
     return wrapper

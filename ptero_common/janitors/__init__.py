@@ -1,4 +1,5 @@
 import argparse
+from ptero_common import nicer_logging
 import logging
 import os
 import sys
@@ -7,7 +8,7 @@ import sys
 __all__ = ['perform_cleanup']
 
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 
 
 def perform_cleanup(janitor_spec):

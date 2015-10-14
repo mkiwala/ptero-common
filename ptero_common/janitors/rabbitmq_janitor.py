@@ -1,12 +1,12 @@
 from .base import Janitor
 from .exceptions import *  # noqa
 from urlparse import urljoin, urlunparse
-import logging
+from ptero_common import nicer_logging
 import requests
 import urllib
 
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 
 
 class RabbitMQJanitor(Janitor):

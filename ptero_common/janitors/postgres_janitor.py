@@ -1,9 +1,9 @@
 from .base import Janitor
-import logging
+from ptero_common import nicer_logging
 import sqlalchemy
 
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 
 
 class PostgresJanitor(Janitor):

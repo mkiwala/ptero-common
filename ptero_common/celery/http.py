@@ -1,8 +1,8 @@
 import celery
 from ptero_common import nicer_logging
+from ptero_common.nicer_logging import logged_request
 import json
 from requests.exceptions import ConnectionError
-import requests
 
 __all__ = ['HTTP', 'HTTPWithResult']
 
@@ -28,10 +28,10 @@ class HTTP(celery.Task):
 
     def run(self, method, url, **kwargs):
         try:
-            response = getattr(requests, method.lower())(
+            response = getattr(logged_request, method.lower())(
                 url, data=self.body(kwargs),
                 headers={'Content-Type': 'application/json'},
-                timeout=10)
+                timeout=10, logger=LOG)
         except ConnectionError as exc:
             delay = DELAYS[self.request.retries]
             LOG.info(

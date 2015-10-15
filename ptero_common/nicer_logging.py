@@ -10,7 +10,6 @@ from pprint import pformat
 
 try:
     from flask import request
-    from werkzeug.wrappers import BaseResponse as Response
 except:
     # Not everybody who uses ptero_common has requires/uses flask
     pass
@@ -59,11 +58,9 @@ def logged_response(logger):
         def wrapper(*args, **kwargs):
             label = '%s %s' % (target.__name__.upper(), request.url)
 
-            request_data = getattr(request, '_cached_data', None)
-
-            logger.info(
+            logger.debug(
                     "Handling %s from %s", label, request.access_route[0])
-            logger.debug("Body of %s: %s", label, _pformat(request_data))
+            logger.debug("Body of %s: %s", label, _pformat(request.json))
 
             try:
                 result = target(*args, **kwargs)
@@ -71,12 +68,8 @@ def logged_response(logger):
                 logger.exception(
                         "Exception while handling %s from %s:\n"
                         "Body: %s", label, request.access_route[0],
-                        _pformat(request_data))
+                        _pformat(request.json))
                 raise
-            response = Response(*result)
-            logger.info(
-                    "Responding %s to %s", response.status_code, label)
-
             logger.debug("Full response to %s: %s", label, _pformat(result))
             return result
         return wrapper
@@ -102,7 +95,6 @@ def _log_request(target, kind):
         request = Request(kind.upper(), *args, **kwargs_for_constructor)
 
         label = '%s %s' % (kind.upper(), request.url)
-        logger.info('Sending %s', label)
         logger.debug("Params for %s: %s", label, _pformat(request.params))
         logger.debug("Headers for %s: %s", label, _pformat(request.headers))
         logger.debug("Data for %s: %s", label, _pformat(request.data))
@@ -119,7 +111,7 @@ def _log_request(target, kind):
                 label, _pformat(args), _pformat(kwargs))
             raise
 
-        logger.info("Got %s from %s", response.status_code, label)
+        logger.debug("Got %s from %s", response.status_code, label)
         logger.debug("Body of response from %s: %s", label,
                 _pformat(response.text))
         logger.debug("Headers in response from %s: %s", label,

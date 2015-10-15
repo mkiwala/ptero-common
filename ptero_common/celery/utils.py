@@ -1,8 +1,8 @@
 import re
 import os
-import logging
+from ptero_common import nicer_logging
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 
 _CONFIGURATION_NAMES = {
         'CELERY_BROKER_URL': 'BROKER_URL',

@@ -1,13 +1,13 @@
 import celery
-import logging
+from ptero_common import nicer_logging
+from ptero_common.nicer_logging import logged_request
 import json
 from requests.exceptions import ConnectionError
-from ptero_common.logging_configuration import logged_request
 
 __all__ = ['HTTP', 'HTTPWithResult']
 
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 
 MIN = 60
 DELAYS = [1, 5, 10, 30, 60, 2 * MIN, 4 * MIN, 10 * MIN, 30 * MIN, 60 * MIN]

@@ -77,7 +77,11 @@ def logged_response(logger):
 
 
 def _pformat(data):
-    return pformat(data, indent=2, width=80)[:MAX_DATA_LENGTH]
+    formatted_data = pformat(data, indent=2, width=80)
+    if len(formatted_data) > MAX_DATA_LENGTH:
+        return formatted_data[:MAX_DATA_LENGTH] + "..."
+    else:
+        return formatted_data
 
 
 def _log_request(target, kind):

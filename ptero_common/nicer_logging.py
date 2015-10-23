@@ -16,8 +16,8 @@ except:
 
 
 MAX_DATA_LENGTH = int(os.environ.get("PTERO_LOG_MAX_DATA_LENGTH", "512"))
-TRACEBACK_DEPTH = int(os.environ.get(
-        "PTERO_LOG_EXCEPTION_TRACEBACK_DEPTH", "3"))
+TRACEBACK_DEPTH = abs(int(os.environ.get(
+        "PTERO_LOG_EXCEPTION_TRACEBACK_DEPTH", "3")))
 
 
 def getLogger(*args, **kwargs):
@@ -39,8 +39,9 @@ class CustomLogger(object):
             my_extra = {}
 
         my_extra['exception'] = _pformat(sys.exc_info()[1])
-        for i, tb_line in enumerate(
-                traceback.format_tb(sys.exc_info()[2], TRACEBACK_DEPTH)):
+
+        tb_lines = traceback.format_tb(sys.exc_info()[2])
+        for i, tb_line in enumerate(tb_lines[-TRACEBACK_DEPTH:]):
             my_extra['traceback-%s' % (i + 1)] = tb_line
 
         kwargs['extra'] = my_extra
@@ -49,8 +50,9 @@ class CustomLogger(object):
 
 class CustomFormatter(logging.Formatter):
     def formatException(self, exc_info):
-        return ''.join(traceback.format_tb(
-            sys.exc_info()[2], TRACEBACK_DEPTH)) + _pformat(sys.exc_info()[1])
+        tb_lines = traceback.format_tb(sys.exc_info()[2])
+        return ''.join(tb_lines[-TRACEBACK_DEPTH:]) +\
+                _pformat(sys.exc_info()[1])
 
 
 def logged_response(logger):

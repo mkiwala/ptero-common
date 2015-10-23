@@ -8,6 +8,8 @@ def configure_celery_logging(service_name):
     configure_logging(
         'PTERO_%s_LOG_LEVEL' % service_name,
         'PTERO_%s_LOG_WITH_TIMESTAMPS' % service_name)
+    logging.getLogger('pip').setLevel(
+        os.environ.get('PTERO_%s_PIP_LOG_LEVEL' % service_name, 'WARN'))
     logging.getLogger('requests').setLevel(
         os.environ.get('PTERO_%s_REQUESTS_LOG_LEVEL' % service_name, 'WARN'))
     logging.getLogger('celery').setLevel(
@@ -22,6 +24,8 @@ def configure_web_logging(service_name):
     configure_logging(
         'PTERO_%s_LOG_LEVEL' % service_name,
         'PTERO_%s_LOG_WITH_TIMESTAMPS' % service_name)
+    logging.getLogger('pip').setLevel(
+        os.environ.get('PTERO_%s_PIP_LOG_LEVEL' % service_name, 'WARN'))
     logging.getLogger('pika').setLevel(
         os.environ.get('PTERO_%s_PIKA_LOG_LEVEL' % service_name, 'WARN'))
     logging.getLogger('requests').setLevel(

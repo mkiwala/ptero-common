@@ -51,7 +51,8 @@ class CustomLogger(object):
 class CustomFormatter(logging.Formatter):
     def formatException(self, exc_info):
         tb_lines = traceback.format_tb(sys.exc_info()[2])
-        return ''.join(tb_lines[-TRACEBACK_DEPTH:]) + _pformat(sys.exc_info()[1])
+        return ''.join(tb_lines[-TRACEBACK_DEPTH:]) +\
+                _pformat(sys.exc_info()[1])
 
 
 def logged_response(logger):

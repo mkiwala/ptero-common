@@ -32,14 +32,14 @@ class HTTP(celery.Task):
                 url, data=self.body(kwargs),
                 headers={'Content-Type': 'application/json'},
                 timeout=10, logger=LOG)
-        except ConnectionError as exc:
+        except ConnectionError:
             delay = DELAYS[self.request.retries]
             LOG.info(
                 "A ConnectionError occured for while attempting to send "
                 "%s  %s, retrying in %s seconds. Attempt %d of %d.",
                 method.upper(), url, delay, self.request.retries + 1,
                 self.max_retries + 1)
-            self.retry(exc=exc, countdown=delay)
+            self.retry(throw=False, countdown=delay)
 
         if response.status_code in CODES_TO_RETRY:
             delay = DELAYS[self.request.retries]
@@ -47,9 +47,7 @@ class HTTP(celery.Task):
                 "Got response (%s), retrying in %s seconds.  Attempt %d of %d.",
                 response.status_code, delay, self.request.retries + 1,
                 self.max_retries + 1)
-            self.retry(
-                exc=celery.exceptions.MaxRetriesExceededError,
-                countdown=delay)
+            self.retry(throw=False, countdown=delay)
 
         response_info = {
             "method": method,

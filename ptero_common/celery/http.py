@@ -55,7 +55,7 @@ class HTTP(celery.Task):
             "data": kwargs,
             "status_code": response.status_code,
             "text": response.text,
-            "headers": response.text,
+            "headers": response.headers,
         }
 
         if response.status_code < 200 or response.status_code >= 300:

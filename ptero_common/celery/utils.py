@@ -6,6 +6,8 @@ LOG = nicer_logging.getLogger(__name__)
 
 _CONFIGURATION_NAMES = {
         'CELERY_BROKER_URL': 'BROKER_URL',
+        'CELERY_BROKER_HEARTBEAT': 'BROKER_HEARTBEAT',
+        'CELERY_BROKER_HEARTBEAT_CHECKRATE': 'BROKER_HEARTBEAT_CHECKRATE',
 }
 
 
@@ -33,6 +35,8 @@ def _bool_formatter(value):
 _FORMATTERS = {
         'CELERY_ACCEPT_CONTENT': _list_formatter,
         'CELERY_ACKS_LATE': _bool_formatter,
+        'CELERY_BROKER_HEARTBEAT': float,
+        'CELERY_BROKER_HEARTBEAT_CHECKRATE': float,
         'CELERY_PREFETCH_MULTIPLIER': int,
         'CELERY_TRACK_STARTED': _bool_formatter,
 }

@@ -8,6 +8,7 @@ _CONFIGURATION_NAMES = {
         'CELERY_BROKER_URL': 'BROKER_URL',
         'CELERY_BROKER_HEARTBEAT': 'BROKER_HEARTBEAT',
         'CELERY_BROKER_HEARTBEAT_CHECKRATE': 'BROKER_HEARTBEAT_CHECKRATE',
+        'CELERY_BROKER_TRANSPORT_OPTIONS': 'BROKER_TRANSPORT_OPTIONS',
 }
 
 
@@ -32,11 +33,16 @@ def _list_formatter(value):
 def _bool_formatter(value):
     return bool(int(value))
 
+
+def _json_formatter(value):
+    return json.loads(value)
+
 _FORMATTERS = {
         'CELERY_ACCEPT_CONTENT': _list_formatter,
         'CELERY_ACKS_LATE': _bool_formatter,
         'CELERY_BROKER_HEARTBEAT': float,
         'CELERY_BROKER_HEARTBEAT_CHECKRATE': float,
+        'CELERY_BROKER_TRANSPORT_OPTIONS': _json_formatter,
         'CELERY_PREFETCH_MULTIPLIER': int,
         'CELERY_TRACK_STARTED': _bool_formatter,
 }

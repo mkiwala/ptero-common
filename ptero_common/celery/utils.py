@@ -36,7 +36,15 @@ def _bool_formatter(value):
 
 
 def _json_formatter(value):
-    return json.loads(value)
+    formatted_value
+    try:
+        formatted_value = json.loads(value)
+    except Exception as e:
+        LOG.exception("Failed to load value (%s) as json")
+        raise e
+
+    return formatted_value
+
 
 _FORMATTERS = {
         'CELERY_ACCEPT_CONTENT': _list_formatter,

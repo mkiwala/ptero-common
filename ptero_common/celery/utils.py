@@ -40,7 +40,7 @@ def _json_formatter(value):
     try:
         formatted_value = json.loads(value)
     except Exception as e:
-        LOG.exception("Failed to load value (%s) as json")
+        print "Failed to load value (%s) as json" % value
         raise e
 
     return formatted_value

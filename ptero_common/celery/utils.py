@@ -36,7 +36,7 @@ def _bool_formatter(value):
 
 
 def _json_formatter(value):
-    formatted_value
+    formatted_value = ''
     try:
         formatted_value = json.loads(value)
     except Exception as e:

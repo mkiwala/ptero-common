@@ -40,9 +40,9 @@ def _json_formatter(value):
 _FORMATTERS = {
         'CELERY_ACCEPT_CONTENT': _list_formatter,
         'CELERY_ACKS_LATE': _bool_formatter,
-        'CELERY_BROKER_HEARTBEAT': float,
-        'CELERY_BROKER_HEARTBEAT_CHECKRATE': float,
-        'CELERY_BROKER_TRANSPORT_OPTIONS': _json_formatter,
+        'BROKER_HEARTBEAT': float,
+        'BROKER_HEARTBEAT_CHECKRATE': float,
+        'BROKER_TRANSPORT_OPTIONS': _json_formatter,
         'CELERY_PREFETCH_MULTIPLIER': int,
         'CELERY_TRACK_STARTED': _bool_formatter,
 }
